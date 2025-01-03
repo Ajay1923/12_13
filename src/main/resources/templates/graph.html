@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Log Graph</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: "Arial", sans-serif;
+            background: linear-gradient(to right, #FFD700, #FF6347);
+            color: #333;
+            line-height: 1.6;
+        }
+        #chart-container, #pie-container, #line-container {
+            width: 50%;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <center><h1>Log Data Graph</h1></center>
+
+        <div th:if="${error}" class="alert alert-danger">
+            <p th:text="${error}"></p>
+        </div>
+
+        <div>
+            <h4>Uploaded File: <span th:text="${uploadedFileName}"></span></h4>
+            <p>Timestamp: <span th:text="${timestamp}"></span></p>
+        </div>
+
+        <h3>Log Counts</h3>
+        <table class="table" id="logTable">
+            <thead>
+                <tr>
+                    <th>Log Type / Exception</th>
+                    <th>Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="logEntry : ${logCounts}">
+                    <td th:text="${logEntry.key}"></td>
+                    <td th:text="${logEntry.value}"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div id="chart-container">
+            <canvas id="logChart"></canvas>
+        </div>
+
+        <div id="pie-container">
+            <canvas id="pieChart"></canvas>
+        </div>
+
+        <div id="line-container">
+            <canvas id="lineChart"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Extract data from the table
+        var labels = [];
+        var counts = [];
+
+        var rows = document.querySelectorAll('#logTable tbody tr');
+        rows.forEach(function(row) {
+            var cells = row.querySelectorAll('td');
+            var logType = cells[0].innerText;
+            var count = parseInt(cells[1].innerText);
+
+            labels.push(logType);
+            counts.push(count);
+        });
+
+        // Bar Chart Configuration
+        var barData = {
+            labels: labels,
+            datasets: [{
+                label: 'Log Count',
+                data: counts,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2
+            }]
+        };
+
+        var barConfig = {
+            type: 'bar',
+            data: barData,
+            options: {
+                responsive: true,
+                scales: {
+                    x: { title: { display: true, text: 'Exception Types' } },
+                    y: { beginAtZero: true, title: { display: true, text: 'Count' } }
+                }
+            }
+        };
+
+        var barCtx = document.getElementById('logChart').getContext('2d');
+        new Chart(barCtx, barConfig);
+
+        // Pie Chart Configuration
+        var pieData = {
+            labels: labels,
+            datasets: [{
+                data: counts,
+                backgroundColor: [
+                    '#FF5733', '#33FF57', '#3357FF', '#F4D03F',
+                    '#9B59B6', '#E74C3C', '#1ABC9C', '#34495E',
+                    '#ADD8E6', '#27AE60', '#2980B9'
+                ],
+                borderColor: '#FFFFFF',
+                borderWidth: 1
+            }]
+        };
+
+        var pieConfig = {
+            type: 'pie',
+            data: pieData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.raw}`;
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        var pieCtx = document.getElementById('pieChart').getContext('2d');
+        new Chart(pieCtx, pieConfig);
+
+        // Line Chart Configuration
+        var lineData = {
+            labels: labels,
+            datasets: [{
+                label: 'Log Count Trend',
+                data: counts,
+                fill: false,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                tension: 0.4,
+                pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                pointRadius: 5
+            }]
+        };
+
+        var lineConfig = {
+            type: 'line',
+            data: lineData,
+            options: {
+                responsive: true,
+                scales: {
+                    x: { title: { display: true, text: 'Exception Types' } },
+                    y: { beginAtZero: true, title: { display: true, text: 'Count' } }
+                }
+            }
+        };
+
+        var lineCtx = document.getElementById('lineChart').getContext('2d');
+        new Chart(lineCtx, lineConfig);
+    </script>
+</body>
+</html>
