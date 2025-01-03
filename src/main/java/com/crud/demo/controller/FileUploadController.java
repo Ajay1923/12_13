@@ -68,7 +68,6 @@ public class FileUploadController {
     	return "addusers";
     }
    
-
     @GetMapping("/file")
     public String upload(Model model) {
         // Add the uploaded logs and counts to the model for display
@@ -419,5 +418,26 @@ public class FileUploadController {
         model.addAttribute("filteredLogs", filteredLogs);
         model.addAttribute("exceptionType", accessType); // Send the exception type for display
         return "filteredlogs"; // Ensure this is the correct template name
+    }
+     @GetMapping("/graph")
+    public String showLogGraph(Model model) {
+        String uploadedFileName = (String) httpSession.getAttribute("uploadedFileName");
+        Map<String, Integer> logCounts = (Map<String, Integer>) httpSession.getAttribute("logCounts");
+        String timestamp = (String) httpSession.getAttribute("uploadTimestamp");
+        Map<String, Integer> filteredLogCounts = (Map<String, Integer>) httpSession.getAttribute("filteredLogCounts");
+
+        // Check if the data is available
+        if (uploadedFileName == null || logCounts == null || timestamp == null) {
+            model.addAttribute("error", "No log data available. Please upload a log file first.");
+            return "graph";
+        }
+
+        // Add both general and filtered log counts to the model
+        model.addAttribute("uploadedFileName", uploadedFileName);
+        model.addAttribute("logCounts", logCounts);  // Adding map directly to the model
+        model.addAttribute("timestamp", timestamp);
+        model.addAttribute("filteredLogCounts", filteredLogCounts); // Add filtered counts
+
+        return "graph";  // Show the logGraph page
     }
 }
